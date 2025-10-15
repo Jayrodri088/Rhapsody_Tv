@@ -1,11 +1,61 @@
 // ignore_for_file: unused_local_variable
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:rhapsody_tv/screens/forgot_password.dart';
 import 'package:rhapsody_tv/screens/sign_up_screen.dart';
+import 'package:rhapsody_tv/screens/discover_screen.dart';
+import 'package:rhapsody_tv/providers/auth_provider.dart';
 
-class SignInScreen extends StatelessWidget {
+class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
+
+  @override
+  State<SignInScreen> createState() => _SignInScreenState();
+}
+
+class _SignInScreenState extends State<SignInScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleSignIn() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    final success = await authProvider.login(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
+
+    if (!mounted) return;
+
+    if (success) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const DiscoverScreen(),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authProvider.errorMessage ?? 'Login failed'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,125 +125,158 @@ class SignInScreen extends StatelessWidget {
                   const SizedBox(height: 40),
 
                   // White Card Container
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: screenWidth * 0.06,
-                      vertical: screenHeight * 0.03,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(22),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.15),
-                          blurRadius: 10,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'Sign In',
-                          style: TextStyle(
-                            color: Color(0xFF0033FF),
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                  Form(
+                    key: _formKey,
+                    child: Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: screenWidth * 0.06,
+                        vertical: screenHeight * 0.03,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(22),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 10,
+                            offset: const Offset(0, 6),
                           ),
-                        ),
-                        Container(
-                          margin: const EdgeInsets.symmetric(vertical: 6),
-                          height: 3,
-                          width: 60,
-                          color: const Color(0xFFD2CF2B),
-                        ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Sign In',
+                            style: TextStyle(
+                              color: Color(0xFF0033FF),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Container(
+                            margin: const EdgeInsets.symmetric(vertical: 6),
+                            height: 3,
+                            width: 60,
+                            color: const Color(0xFFD2CF2B),
+                          ),
 
-                        const SizedBox(height: 20),
+                          const SizedBox(height: 20),
 
-                        // Email field
-                        _inputField(
-                          'Email address',
-                          screenHeight: screenHeight,
-                        ),
-                        const SizedBox(height: 18),
+                          // Email field
+                          _inputField(
+                            'Email address',
+                            controller: _emailController,
+                            screenHeight: screenHeight,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your email';
+                              }
+                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                                  .hasMatch(value)) {
+                                return 'Please enter a valid email';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 18),
 
-                        // Password field
-                        _inputField(
-                          'Password',
-                          obscure: true,
-                          screenHeight: screenHeight,
-                        ),
+                          // Password field
+                          _inputField(
+                            'Password',
+                            controller: _passwordController,
+                            obscure: true,
+                            screenHeight: screenHeight,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your password';
+                              }
+                              return null;
+                            },
+                          ),
 
-                        const SizedBox(height: 14),
+                          const SizedBox(height: 14),
 
-                        // Forgot password (Clickable link)
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => const ForgotPasswordScreen(),
-                              ),
-                            );
-                          },
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              'Forgot Password?',
-                              style: TextStyle(
-                                color: const Color(0xFF7C7C7C),
-                                fontSize:
-                                    screenWidth * 0.04, // Responsive font size
-                                fontWeight: FontWeight.w600,
-                                decoration: TextDecoration.underline,
+                          // Forgot password (Clickable link)
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => const ForgotPasswordScreen(),
+                                ),
+                              );
+                            },
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Forgot Password?',
+                                style: TextStyle(
+                                  color: const Color(0xFF7C7C7C),
+                                  fontSize:
+                                      screenWidth * 0.04, // Responsive font size
+                                  fontWeight: FontWeight.w600,
+                                  decoration: TextDecoration.underline,
+                                ),
                               ),
                             ),
                           ),
-                        ),
 
-                        const SizedBox(height: 20),
+                          const SizedBox(height: 20),
 
-                        // ENTER Button
-                        Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF0033FF),
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFFD2CF2B).withOpacity(0.7),
-                                blurRadius: 4,
-                                spreadRadius: 0.3,
-                                offset: const Offset(2, 3),
-                              ),
-                            ],
+                          // ENTER Button
+                          Consumer<AuthProvider>(
+                            builder: (context, authProvider, child) {
+                              return Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF0033FF),
+                                  borderRadius: BorderRadius.circular(10),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFFD2CF2B).withOpacity(0.7),
+                                      blurRadius: 4,
+                                      spreadRadius: 0.3,
+                                      offset: const Offset(2, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF0033FF),
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  onPressed: authProvider.isLoading ? null : _handleSignIn,
+                                  child: authProvider.isLoading
+                                      ? const SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : Text(
+                                          'ENTER',
+                                          style: TextStyle(
+                                            fontSize:
+                                                screenWidth * 0.05, // Responsive font size
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                ),
+                              );
+                            },
                           ),
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF0033FF),
-                              elevation: 0,
-                              padding: EdgeInsets.symmetric(
-                                vertical: buttonHeight,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            onPressed: () {},
-                            child: Text(
-                              'ENTER',
-                              style: TextStyle(
-                                fontSize:
-                                    screenWidth * 0.05, // Responsive font size
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
 
                         const SizedBox(height: 10),
                         const Text(
@@ -224,7 +307,7 @@ class SignInScreen extends StatelessWidget {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF0097E6),
                               elevation: 0,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
@@ -241,7 +324,8 @@ class SignInScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
 
@@ -281,9 +365,13 @@ class SignInScreen extends StatelessWidget {
     String hint, {
     bool obscure = false,
     required double screenHeight,
+    TextEditingController? controller,
+    String? Function(String?)? validator,
   }) {
-    return TextField(
+    return TextFormField(
+      controller: controller,
       obscureText: obscure,
+      validator: validator,
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(
@@ -291,7 +379,7 @@ class SignInScreen extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
         contentPadding: EdgeInsets.symmetric(
-          vertical: screenHeight * 0.008, // Responsive padding
+          vertical: screenHeight * 0.02, // Responsive padding
           horizontal: 16,
         ),
         enabledBorder: OutlineInputBorder(
@@ -301,6 +389,14 @@ class SignInScreen extends StatelessWidget {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: Color(0xFF0033FF), width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Colors.red, width: 1.2),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Colors.red, width: 2),
         ),
       ),
     );

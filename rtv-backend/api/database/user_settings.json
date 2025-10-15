@@ -1,0 +1,16 @@
+{
+    "settings": [
+        {
+            "user_id": "user_68efb0948085f9.85138450",
+            "notifications_enabled": true,
+            "email_notifications": true,
+            "push_notifications": true,
+            "auto_play": false,
+            "video_quality": "1080p",
+            "language": "en",
+            "theme": "light",
+            "updated_at": "2025-10-15 23:34:28",
+            "created_at": "2025-10-15 23:34:28"
+        }
+    ]
+}

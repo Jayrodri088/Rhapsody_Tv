@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
+import 'package:provider/provider.dart';
+import 'auth_screnn.dart';
+import 'discover_screen.dart';
+import '../providers/auth_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -30,18 +33,39 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // After 3 seconds, navigate to HomeScreen
-    Timer(const Duration(seconds: 3), () {
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          transitionDuration: const Duration(milliseconds: 800),
-          pageBuilder: (_, __, ___) => const HomeScreen(),
-          transitionsBuilder: (_, animation, __, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-        ),
-      );
-    });
+    // Check authentication status and navigate accordingly
+    _checkAuthAndNavigate();
+  }
+
+  Future<void> _checkAuthAndNavigate() async {
+    // Get auth provider first
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    // Wait for animation AND user data to load (whichever takes longer)
+    await Future.wait([
+      Future.delayed(const Duration(seconds: 2)),
+      Future.delayed(const Duration(milliseconds: 500)), // Give time for storage to load
+    ]);
+
+    if (!mounted) return;
+
+    // Check if user is already logged in
+    final isAuthenticated = authProvider.isAuthenticated;
+
+    if (!mounted) return;
+
+    // Navigate based on authentication status
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 800),
+        pageBuilder: (_, __, ___) => isAuthenticated
+            ? const DiscoverScreen()  // Auto-login: Go directly to Discover
+            : const AuthScreen(),      // Not logged in: Go to Sign In
+        transitionsBuilder: (_, animation, __, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      ),
+    );
   }
 
   @override

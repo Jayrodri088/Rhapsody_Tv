@@ -2,8 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:rhapsody_tv/screens/sign_in_screen.dart';
 import 'package:rhapsody_tv/screens/sign_up_screen.dart';
 
-class AuthScreen extends StatelessWidget {
+class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
+
+  @override
+  State<AuthScreen> createState() => _AuthScreenState();
+}
+
+class _AuthScreenState extends State<AuthScreen> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0; // Start at first page (index 0)
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +66,7 @@ class AuthScreen extends StatelessWidget {
             ),
           ),
 
-          // Foreground content
+          // Foreground content with PageView
           Padding(
             padding: EdgeInsets.only(
               top: screenHeight * 0.09,
@@ -87,129 +101,233 @@ class AuthScreen extends StatelessWidget {
 
                 SizedBox(height: screenHeight * 0.22), // Dynamic spacing
 
-                // Sign In button
-                Container(
-                  width: screenWidth * 0.65, // Responsive width
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0033FF),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFF6C944).withOpacity(0.5),
-                        blurRadius: 5,
-                        spreadRadius: 1,
-                        offset: const Offset(4, 2),
+                // PageView for multiple pages
+                Expanded(
+                  child: PageView(
+                    controller: _pageController,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentPage = index;
+                      });
+                    },
+                    children: [
+                      // Page 0 - Get Started welcome page
+                      _buildAuthPage(
+                        screenWidth: screenWidth,
+                        buttonHeight: buttonHeight,
+                        title: 'Welcome to RhapsodyTV',
+                        description: 'Stream unlimited entertainment',
+                        primaryButtonText: 'Get Started',
+                        secondaryButtonText: 'Learn More',
+                        onPrimaryPressed: () {
+                          // Navigate to next page
+                          _pageController.animateToPage(
+                            1,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        },
+                        onSecondaryPressed: () {
+                          // Could navigate to an info/about page
+                          // For now, just animate to next page
+                          _pageController.animateToPage(
+                            1,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        },
+                      ),
+                      // Page 1 - Sign In and Register page
+                      _buildAuthPage(
+                        screenWidth: screenWidth,
+                        buttonHeight: buttonHeight,
+                        title: null,
+                        description: null,
+                        primaryButtonText: 'Sign In',
+                        secondaryButtonText: 'Register',
+                        onPrimaryPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SignInScreen(),
+                            ),
+                          );
+                        },
+                        onSecondaryPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SignUpScreen(),
+                            ),
+                          );
+                        },
                       ),
                     ],
-                  ),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0033FF),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: EdgeInsets.symmetric(vertical: buttonHeight),
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const SignInScreen(),
-                        ),
-                      );
-                    },
-                    child: Text(
-                      'Sign In',
-                      style: TextStyle(
-                        fontSize: screenWidth * 0.05, // Responsive font size
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Register button
-                Container(
-                  width: screenWidth * 0.65, // Responsive width
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFD2CF2B),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF0033FF).withOpacity(0.6),
-                        blurRadius: 5,
-                        spreadRadius: 1,
-                        offset: const Offset(4, 2),
-                      ),
-                    ],
-                  ),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFD2CF2B),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: EdgeInsets.symmetric(vertical: buttonHeight),
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const SignUpScreen(),
-                        ),
-                      );
-                    },
-                    child: Text(
-                      'Register',
-                      style: TextStyle(
-                        fontSize: screenWidth * 0.05, // Responsive font size
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
                   ),
                 ),
 
                 const SizedBox(height: 40),
 
-                // Page indicators
+                // Clickable Page indicators (2 dots)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _dot(
-                      Colors.white,
-                      width: 10,
-                      shadowColor: Colors.black.withOpacity(0.6),
-                      blur: 5,
-                      offset: const Offset(0, 2),
+                    GestureDetector(
+                      onTap: () {
+                        _pageController.animateToPage(
+                          0,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      },
+                      child: _dot(
+                        _currentPage == 0 ? Colors.yellow : Colors.white,
+                        width: _currentPage == 0 ? 24 : 10,
+                        shadowColor: Colors.black.withOpacity(0.6),
+                        blur: 5,
+                        offset: const Offset(0, 2),
+                      ),
                     ),
                     const SizedBox(width: 8),
-                    _dot(
-                      Colors.yellow,
-                      width: 24,
-                      shadowColor: Colors.black.withOpacity(0.6),
-                      blur: 5,
-                      offset: const Offset(0, 2),
-                    ),
-                    const SizedBox(width: 8),
-                    _dot(
-                      Colors.white,
-                      shadowColor: Colors.black.withOpacity(0.6),
-                      blur: 5,
-                      offset: const Offset(0, 2),
+                    GestureDetector(
+                      onTap: () {
+                        _pageController.animateToPage(
+                          1,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      },
+                      child: _dot(
+                        _currentPage == 1 ? Colors.yellow : Colors.white,
+                        width: _currentPage == 1 ? 24 : 10,
+                        shadowColor: Colors.black.withOpacity(0.6),
+                        blur: 5,
+                        offset: const Offset(0, 2),
+                      ),
                     ),
                   ],
                 ),
+                const SizedBox(height: 40),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildAuthPage({
+    required double screenWidth,
+    required double buttonHeight,
+    String? title,
+    String? description,
+    required String primaryButtonText,
+    required String secondaryButtonText,
+    required VoidCallback onPrimaryPressed,
+    required VoidCallback onSecondaryPressed,
+  }) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        if (title != null) ...[
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: screenWidth * 0.08,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
+        if (description != null) ...[
+          Text(
+            description,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: screenWidth * 0.045,
+              color: Colors.white.withOpacity(0.9),
+            ),
+          ),
+          const SizedBox(height: 30),
+        ],
+        if (title == null && description == null)
+          const SizedBox(height: 20),
+
+        // Primary button
+        Container(
+          width: screenWidth * 0.65,
+          decoration: BoxDecoration(
+            color: const Color(0xFF0033FF),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFF6C944).withOpacity(0.5),
+                blurRadius: 5,
+                spreadRadius: 1,
+                offset: const Offset(4, 2),
+              ),
+            ],
+          ),
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0033FF),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+            onPressed: onPrimaryPressed,
+            child: Text(
+              primaryButtonText,
+              style: TextStyle(
+                fontSize: screenWidth * 0.05,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // Secondary button
+        Container(
+          width: screenWidth * 0.65,
+          decoration: BoxDecoration(
+            color: const Color(0xFFD2CF2B),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF0033FF).withOpacity(0.6),
+                blurRadius: 5,
+                spreadRadius: 1,
+                offset: const Offset(4, 2),
+              ),
+            ],
+          ),
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFD2CF2B),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+            onPressed: onSecondaryPressed,
+            child: Text(
+              secondaryButtonText,
+              style: TextStyle(
+                fontSize: screenWidth * 0.05,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

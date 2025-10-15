@@ -1,8 +1,75 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:rhapsody_tv/screens/sign_in_screen.dart';
+import 'package:rhapsody_tv/screens/discover_screen.dart';
+import 'package:rhapsody_tv/providers/auth_provider.dart';
 
-class SignUpScreen extends StatelessWidget {
+class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
+
+  @override
+  State<SignUpScreen> createState() => _SignUpScreenState();
+}
+
+class _SignUpScreenState extends State<SignUpScreen> {
+  bool _acceptTerms = false;
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleSignUp() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (!_acceptTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please accept the terms and conditions'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    final success = await authProvider.register(
+      name: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+      confirmPassword: _confirmPasswordController.text,
+    );
+
+    if (!mounted) return;
+
+    if (success) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const DiscoverScreen(),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authProvider.errorMessage ?? 'Registration failed'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,108 +134,194 @@ class SignUpScreen extends StatelessWidget {
                   SizedBox(height: screenHeight * 0.05),
 
                   // White Card Container
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: screenWidth * 0.06,
-                      vertical: screenHeight * 0.04,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(22),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.15),
-                          blurRadius: 10,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'Sign Up',
-                          style: TextStyle(
-                            color: Color(0xFF0033FF),
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                  Form(
+                    key: _formKey,
+                    child: Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: screenWidth * 0.06,
+                        vertical: screenHeight * 0.04,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(22),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 10,
+                            offset: const Offset(0, 6),
                           ),
-                        ),
-                        Container(
-                          margin: const EdgeInsets.symmetric(vertical: 6),
-                          height: 3,
-                          width: 60,
-                          color: const Color(0xFFD2CF2B),
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        // Email field
-                        _inputField('Email address', screenHeight: screenHeight),
-                        const SizedBox(height: 16),
-
-                        // Password field
-                        _inputField('Password', obscure: true, screenHeight: screenHeight),
-                        const SizedBox(height: 16),
-
-                        _inputField('Confirm Password', obscure: true, screenHeight: screenHeight),
-
-                        // Checkbox for terms and conditions
-                        Row(
-                          children: [
-                            Checkbox(
-                              value: false, // Handle the state accordingly
-                              onChanged: (value) {},
-                              activeColor: const Color(0xFFD2CF2B),
-                            ),
-                            const Text(
-                              'Accept terms and conditions',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF7C7C7C),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                        // REGISTER Button
-                        Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF0033FF),
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFFD2CF2B).withOpacity(0.7),
-                                blurRadius: 4,
-                                spreadRadius: 0.3,
-                                offset: const Offset(2, 3),
-                              ),
-                            ],
-                          ),
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF0033FF),
-                              elevation: 0,
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            onPressed: () {},
-                            child: const Text(
-                              'REGISTER',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Sign Up',
+                            style: TextStyle(
+                              color: Color(0xFF0033FF),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
-                      ],
+                          Container(
+                            margin: const EdgeInsets.symmetric(vertical: 6),
+                            height: 3,
+                            width: 60,
+                            color: const Color(0xFFD2CF2B),
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // Name field
+                          _inputField(
+                            'Full Name',
+                            controller: _nameController,
+                            screenHeight: screenHeight,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your name';
+                              }
+                              if (value.length < 2) {
+                                return 'Name must be at least 2 characters';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Email field
+                          _inputField(
+                            'Email address',
+                            controller: _emailController,
+                            screenHeight: screenHeight,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your email';
+                              }
+                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                                  .hasMatch(value)) {
+                                return 'Please enter a valid email';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Password field
+                          _inputField(
+                            'Password',
+                            controller: _passwordController,
+                            obscure: true,
+                            screenHeight: screenHeight,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter a password';
+                              }
+                              if (value.length < 6) {
+                                return 'Password must be at least 6 characters';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+                          _inputField(
+                            'Confirm Password',
+                            controller: _confirmPasswordController,
+                            obscure: true,
+                            screenHeight: screenHeight,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please confirm your password';
+                              }
+                              if (value != _passwordController.text) {
+                                return 'Passwords do not match';
+                              }
+                              return null;
+                            },
+                          ),
+
+                          // Checkbox for terms and conditions
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _acceptTerms = !_acceptTerms;
+                              });
+                            },
+                            child: Row(
+                              children: [
+                                Checkbox(
+                                  value: _acceptTerms,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _acceptTerms = value ?? false;
+                                    });
+                                  },
+                                  activeColor: const Color(0xFFD2CF2B),
+                                ),
+                                const Text(
+                                  'Accept terms and conditions',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Color(0xFF7C7C7C),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // REGISTER Button
+                          Consumer<AuthProvider>(
+                            builder: (context, authProvider, child) {
+                              return Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF0033FF),
+                                  borderRadius: BorderRadius.circular(10),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFFD2CF2B).withOpacity(0.7),
+                                      blurRadius: 4,
+                                      spreadRadius: 0.3,
+                                      offset: const Offset(2, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF0033FF),
+                                    elevation: 0,
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 14),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  onPressed: authProvider.isLoading ? null : _handleSignUp,
+                                  child: authProvider.isLoading
+                                      ? const SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : const Text(
+                                          'REGISTER',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
 
@@ -204,9 +357,17 @@ class SignUpScreen extends StatelessWidget {
   }
 
   // Custom input field builder
-  Widget _inputField(String hint, {bool obscure = false, required double screenHeight}) {
-    return TextField(
+  Widget _inputField(
+    String hint, {
+    bool obscure = false,
+    required double screenHeight,
+    TextEditingController? controller,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
       obscureText: obscure,
+      validator: validator,
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(
@@ -224,6 +385,14 @@ class SignUpScreen extends StatelessWidget {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: Color(0xFF0033FF), width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Colors.red, width: 1.2),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Colors.red, width: 2),
         ),
       ),
     );

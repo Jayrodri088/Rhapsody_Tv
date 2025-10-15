@@ -168,7 +168,9 @@ class ForgotPasswordScreen extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
                             child: const Text(
                               'Back',
                               style: TextStyle(

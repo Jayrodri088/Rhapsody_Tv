@@ -1,0 +1,23 @@
+{
+    "users": [
+        {
+            "id": "user_68efb0948085f9.85138450",
+            "email": "odunoyemayowa@gmail.com",
+            "password": "$2y$10$bpHeTZt4IaCo1nA8aYq9TeiXgT.hVqkCwGgHqjfY7KfjZO\/v0Gd1a",
+            "created_at": "2025-10-15 16:32:52",
+            "token": "126a1a2585715d7d9304f794b67287f05ff26c1c8b6aad2c3fb93117a3f576fc",
+            "last_login": "2025-10-15 20:43:56"
+        },
+        {
+            "id": "user_68efb12e27d8e0.07561259",
+            "email": "test@example.com",
+            "password": "$2y$10$\/Ir8s3EduL94UjKOez0.1uXwgtefEbTAfe9DCVeB7rW0YwV4MmEnG",
+            "created_at": "2025-10-15 16:35:26",
+            "token": null,
+            "last_login": "2025-10-15 16:36:05",
+            "username": "TestUser",
+            "phone_number": "+1234567890",
+            "updated_at": "2025-10-15 16:36:51"
+        }
+    ]
+}
