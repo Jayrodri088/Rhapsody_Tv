@@ -4,6 +4,7 @@ import 'package:rhapsody_tv/providers/auth_provider.dart';
 import 'package:rhapsody_tv/services/api_service.dart';
 import 'package:rhapsody_tv/screens/video_player_screen.dart';
 import 'package:rhapsody_tv/screens/sign_in_screen.dart';
+import 'dart:async';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -16,18 +17,32 @@ class _HistoryScreenState extends State<HistoryScreen> {
   List<dynamic> _history = [];
   bool _isLoading = false;
   String? _errorMessage;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
     _loadHistory();
+    // Auto-refresh every 10 seconds to update timestamps
+    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      _loadHistory();
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadHistory() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    // Only show loading spinner if history is empty (first load)
+    if (_history.isEmpty) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+    }
 
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -214,6 +229,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final lastWatched = item['last_watched'] ?? '';
     final watchCount = item['watch_count'] ?? 1;
     final progressPercentage = item['progress_percentage'] ?? 0;
+    final thumbnailUrl = item['thumbnail_url'];
 
     return GestureDetector(
       onTap: () {
@@ -249,18 +265,45 @@ class _HistoryScreenState extends State<HistoryScreen> {
           children: [
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    width: 100,
+                    height: 75,
                     color: const Color(0xFF0033FF).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    contentType == 'channel'
-                        ? Icons.live_tv
-                        : Icons.play_circle_outline,
-                    color: const Color(0xFF0033FF),
-                    size: 28,
+                    child: thumbnailUrl != null && thumbnailUrl.isNotEmpty
+                        ? Image.network(
+                            thumbnailUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                contentType == 'channel'
+                                    ? Icons.live_tv
+                                    : Icons.play_circle_outline,
+                                color: const Color(0xFF0033FF),
+                                size: 32,
+                              );
+                            },
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  value: loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                      : null,
+                                  color: const Color(0xFF0033FF),
+                                ),
+                              );
+                            },
+                          )
+                        : Icon(
+                            contentType == 'channel'
+                                ? Icons.live_tv
+                                : Icons.play_circle_outline,
+                            color: const Color(0xFF0033FF),
+                            size: 32,
+                          ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -275,31 +318,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF0033FF),
                         ),
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.access_time,
-                            size: 14,
+                      if (lastWatched.isNotEmpty)
+                        Text(
+                          _formatDate(lastWatched),
+                          style: TextStyle(
+                            fontSize: 12,
                             color: Colors.grey[600],
                           ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              _formatDate(lastWatched),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
                     ],
                   ),
                 ),
@@ -310,64 +340,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEFF0FF),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.play_arrow,
-                        size: 14,
-                        color: Color(0xFF0033FF),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Watched $watchCount ${watchCount == 1 ? 'time' : 'times'}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF0033FF),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (progressPercentage > 0 && progressPercentage < 100) ...[
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.timelapse,
-                            size: 14,
-                            color: Colors.orange,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${progressPercentage.toInt()}% watched',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.orange,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
           ],
         ),
       ),
@@ -376,12 +348,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   String _formatDate(String dateStr) {
     try {
-      final date = DateTime.parse(dateStr);
+      // Parse the date string and convert to local time if needed
+      final date = DateTime.parse(dateStr).toLocal();
       final now = DateTime.now();
       final difference = now.difference(date);
 
-      if (difference.inMinutes < 1) {
+      if (difference.inSeconds < 30) {
         return 'Just now';
+      } else if (difference.inMinutes < 1) {
+        return '${difference.inSeconds} sec ago';
       } else if (difference.inMinutes < 60) {
         return '${difference.inMinutes} min ago';
       } else if (difference.inHours < 24) {
@@ -392,6 +367,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         return '${date.day}/${date.month}/${date.year}';
       }
     } catch (e) {
+      debugPrint('Error parsing date: $dateStr - Error: $e');
       return dateStr;
     }
   }

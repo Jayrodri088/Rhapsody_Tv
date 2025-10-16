@@ -5,9 +5,16 @@ import 'providers/auth_provider.dart';
 import 'providers/channel_provider.dart';
 import 'providers/category_provider.dart';
 import 'providers/notification_provider.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize notification service
+  await NotificationService().initialize();
+
+  // Request notification permissions
+  await NotificationService().requestPermissions();
 
   // Add error handling
   FlutterError.onError = (FlutterErrorDetails details) {

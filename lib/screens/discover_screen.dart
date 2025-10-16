@@ -21,15 +21,16 @@ class DiscoverScreen extends StatefulWidget {
   State<DiscoverScreen> createState() => _DiscoverScreenState();
 }
 
-class _DiscoverScreenState extends State<DiscoverScreen> {
+class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
-  int _selectedTab = 0; // 0 for Channels, 1 for Categories
+  late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     // Fetch channels, categories and notifications when screen loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ChannelProvider>().fetchChannels();
@@ -40,6 +41,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
   @override
   void dispose() {
+    _tabController.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -235,84 +237,32 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           // Channels / Categories tabs
           Container(
             color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedTab = 0;
-                      });
-                    },
-                    child: Column(
-                      children: [
-                        Text(
-                          'CHANNELS',
-                          style: TextStyle(
-                            color: _selectedTab == 0
-                                ? Colors.black
-                                : Colors.grey,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          height: 3,
-                          decoration: BoxDecoration(
-                            color: _selectedTab == 0
-                                ? const Color(0xFFFFD700)
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedTab = 1;
-                      });
-                    },
-                    child: Column(
-                      children: [
-                        Text(
-                          'CATEGORIES',
-                          style: TextStyle(
-                            color: _selectedTab == 1
-                                ? Colors.black
-                                : Colors.grey,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          height: 3,
-                          decoration: BoxDecoration(
-                            color: _selectedTab == 1
-                                ? const Color(0xFFFFD700)
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+            child: TabBar(
+              controller: _tabController,
+              labelColor: Colors.black,
+              unselectedLabelColor: Colors.grey,
+              labelStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+              indicatorColor: const Color(0xFFFFD700),
+              indicatorWeight: 3,
+              tabs: const [
+                Tab(text: 'CHANNELS'),
+                Tab(text: 'CATEGORIES'),
               ],
             ),
           ),
 
-          // Content area with channel cards
+          // Content area with channel cards - now swipeable!
           Expanded(
-            child: _selectedTab == 0
-                ? _buildChannelsContent()
-                : _buildCategoriesContent(),
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildChannelsContent(),
+                _buildCategoriesContent(),
+              ],
+            ),
           ),
         ],
       ),
