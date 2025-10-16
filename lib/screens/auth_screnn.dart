@@ -118,7 +118,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         title: 'Welcome to RhapsodyTV',
                         description: 'Stream unlimited entertainment',
                         primaryButtonText: 'Get Started',
-                        secondaryButtonText: 'Learn More',
+                        secondaryButtonText: null,
                         onPrimaryPressed: () {
                           // Navigate to next page
                           _pageController.animateToPage(
@@ -127,15 +127,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             curve: Curves.easeInOut,
                           );
                         },
-                        onSecondaryPressed: () {
-                          // Could navigate to an info/about page
-                          // For now, just animate to next page
-                          _pageController.animateToPage(
-                            1,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        },
+                        onSecondaryPressed: null,
                       ),
                       // Page 1 - Sign In and Register page
                       _buildAuthPage(
@@ -222,9 +214,9 @@ class _AuthScreenState extends State<AuthScreen> {
     String? title,
     String? description,
     required String primaryButtonText,
-    required String secondaryButtonText,
+    String? secondaryButtonText,
     required VoidCallback onPrimaryPressed,
-    required VoidCallback onSecondaryPressed,
+    VoidCallback? onSecondaryPressed,
   }) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -290,43 +282,45 @@ class _AuthScreenState extends State<AuthScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 20),
 
-        // Secondary button
-        Container(
-          width: screenWidth * 0.65,
-          decoration: BoxDecoration(
-            color: const Color(0xFFD2CF2B),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF0033FF).withOpacity(0.6),
-                blurRadius: 5,
-                spreadRadius: 1,
-                offset: const Offset(4, 2),
-              ),
-            ],
-          ),
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFD2CF2B),
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 14),
+        // Secondary button (only show if provided)
+        if (secondaryButtonText != null && onSecondaryPressed != null) ...[
+          const SizedBox(height: 20),
+          Container(
+            width: screenWidth * 0.65,
+            decoration: BoxDecoration(
+              color: const Color(0xFFD2CF2B),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0033FF).withOpacity(0.6),
+                  blurRadius: 5,
+                  spreadRadius: 1,
+                  offset: const Offset(4, 2),
+                ),
+              ],
             ),
-            onPressed: onSecondaryPressed,
-            child: Text(
-              secondaryButtonText,
-              style: TextStyle(
-                fontSize: screenWidth * 0.05,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFD2CF2B),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              onPressed: onSecondaryPressed,
+              child: Text(
+                secondaryButtonText,
+                style: TextStyle(
+                  fontSize: screenWidth * 0.05,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
             ),
           ),
-        ),
+        ],
       ],
     );
   }

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'auth_screnn.dart';
 import 'discover_screen.dart';
 import '../providers/auth_provider.dart';
+import '../services/notification_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -49,6 +50,11 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (!mounted) return;
 
+    // Request notification permissions directly (system popup only)
+    await NotificationService().requestPermissions();
+
+    if (!mounted) return;
+
     // Check if user is already logged in
     final isAuthenticated = authProvider.isAuthenticated;
 
@@ -67,6 +73,7 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
   }
+
 
   @override
   void dispose() {

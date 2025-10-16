@@ -13,6 +13,8 @@ import 'package:rhapsody_tv/providers/notification_provider.dart';
 import 'package:rhapsody_tv/models/channel_model.dart';
 import 'package:rhapsody_tv/models/category_model.dart';
 import 'package:rhapsody_tv/models/notification_model.dart';
+import 'package:rhapsody_tv/services/notification_polling_service.dart';
+import 'package:rhapsody_tv/services/notification_service.dart';
 
 class DiscoverScreen extends StatefulWidget {
   const DiscoverScreen({super.key});
@@ -36,6 +38,13 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
       context.read<ChannelProvider>().fetchChannels();
       context.read<CategoryProvider>().fetchCategories();
       context.read<NotificationProvider>().fetchNotifications();
+    });
+
+    // Set up callback to refresh notifications when new ones arrive
+    NotificationPollingService().setOnNewNotificationCallback(() {
+      if (mounted) {
+        context.read<NotificationProvider>().fetchNotifications();
+      }
     });
   }
 
@@ -880,9 +889,14 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
 
   Widget _buildNotificationItem(NotificationModel notification) {
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         // Mark as read
         context.read<NotificationProvider>().markAsRead(notification.id);
+
+        // Update badge count (decrement)
+        final unreadCount = context.read<NotificationProvider>().unreadCount;
+        await NotificationService().updateBadge(unreadCount);
+
         Navigator.pop(context);
         Navigator.push(
           context,

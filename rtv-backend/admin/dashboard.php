@@ -120,12 +120,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $linkValue = isset($_POST['notif_link']) ? trim($_POST['notif_link']) : '';
         $linkTextValue = isset($_POST['notif_link_text']) ? trim($_POST['notif_link_text']) : '';
+
+        // Handle channel selection from dropdown
+        $channelId = isset($_POST['notif_channel_id']) ? trim($_POST['notif_channel_id']) : '';
+        $channelNameValue = '';
+        $channelUrlValue = '';
+        $channelButtonTextValue = isset($_POST['notif_channel_button_text']) ? trim($_POST['notif_channel_button_text']) : '';
+
+        if (!empty($channelId)) {
+            $channels = readJSON(CHANNELS_DB);
+            foreach ($channels['channels'] as $channel) {
+                if ($channel['id'] === $channelId) {
+                    $channelNameValue = $channel['name'];
+                    $channelUrlValue = $channel['stream_url'];
+                    break;
+                }
+            }
+        }
+
         $newNotification = [
             'id' => 'notif_' . uniqid(),
             'title' => sanitizeInput($_POST['notif_title']),
             'message' => sanitizeInput($_POST['notif_message']),
             'link' => $linkValue, // Store URL as-is, don't use htmlspecialchars
             'link_text' => $linkTextValue,
+            'channel_name' => $channelNameValue,
+            'channel_url' => $channelUrlValue,
+            'channel_button_text' => $channelButtonTextValue,
             'is_active' => isset($_POST['notif_active']),
             'created_at' => date('Y-m-d H:i:s')
         ];
@@ -140,6 +161,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $linkValue = isset($_POST['notif_link']) ? trim($_POST['notif_link']) : '';
         $linkTextValue = isset($_POST['notif_link_text']) ? trim($_POST['notif_link_text']) : '';
 
+        // Handle channel selection from dropdown
+        $channelId = isset($_POST['notif_channel_id']) ? trim($_POST['notif_channel_id']) : '';
+        $channelNameValue = '';
+        $channelUrlValue = '';
+        $channelButtonTextValue = isset($_POST['notif_channel_button_text']) ? trim($_POST['notif_channel_button_text']) : '';
+
+        if (!empty($channelId)) {
+            $channels = readJSON(CHANNELS_DB);
+            foreach ($channels['channels'] as $channel) {
+                if ($channel['id'] === $channelId) {
+                    $channelNameValue = $channel['name'];
+                    $channelUrlValue = $channel['stream_url'];
+                    break;
+                }
+            }
+        }
+
         $debugInfo .= " | After trim: '$linkValue'";
 
         $found = false;
@@ -150,6 +188,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $notification['message'] = sanitizeInput($_POST['notif_message']);
                 $notification['link'] = $linkValue; // Store URL as-is, don't use htmlspecialchars
                 $notification['link_text'] = $linkTextValue;
+                $notification['channel_name'] = $channelNameValue;
+                $notification['channel_url'] = $channelUrlValue;
+                $notification['channel_button_text'] = $channelButtonTextValue;
                 $notification['is_active'] = isset($_POST['notif_active']);
                 $notification['updated_at'] = date('Y-m-d H:i:s');
 
@@ -960,6 +1001,37 @@ if (isset($_GET['edit_notif'])) {
                         <input type="text" name="notif_link_text" placeholder="e.g., Learn More, Read Article, Watch Now" autocomplete="off"
                             value="<?php echo $editingNotification ? htmlspecialchars($editingNotification['link_text'] ?? '') : ''; ?>">
                         <small style="color: #6b7280;">Display text for the link. If empty, the URL will be shown</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Channel (Optional - for Watch button)</label>
+                        <select name="notif_channel_id" style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; font-family: inherit; background-color: white;">
+                            <option value="">-- None (no watch button) --</option>
+                            <?php
+                            $selectedChannelId = '';
+                            if ($editingNotification && !empty($editingNotification['channel_name'])) {
+                                foreach ($channels['channels'] as $ch) {
+                                    if ($ch['name'] === $editingNotification['channel_name']) {
+                                        $selectedChannelId = $ch['id'];
+                                        break;
+                                    }
+                                }
+                            }
+                            foreach ($channels['channels'] as $channel): ?>
+                                <option value="<?php echo htmlspecialchars($channel['id']); ?>"
+                                    <?php echo ($selectedChannelId === $channel['id']) ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($channel['name']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <small style="color: #6b7280;">Select a channel to show "Watch Channel" button in the notification</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Channel Button Text (Optional)</label>
+                        <input type="text" name="notif_channel_button_text" placeholder="e.g., Watch Live Service, Join Now, Watch Stream" autocomplete="off"
+                            value="<?php echo $editingNotification ? htmlspecialchars($editingNotification['channel_button_text'] ?? '') : ''; ?>">
+                        <small style="color: #6b7280;">Custom text for the watch button. If empty, will default to "Watch [Channel Name]"</small>
                     </div>
 
                     <div class="checkbox-group">

@@ -9,11 +9,13 @@ import 'dart:async';
 class VideoPlayerScreen extends StatefulWidget {
   final String channelName;
   final String streamUrl;
+  final String? thumbnailUrl;
 
   const VideoPlayerScreen({
     super.key,
     required this.channelName,
     required this.streamUrl,
+    this.thumbnailUrl,
   });
 
   @override
@@ -56,6 +58,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           contentId: widget.streamUrl,
           contentType: 'channel',
           contentTitle: widget.channelName,
+          thumbnailUrl: widget.thumbnailUrl,
         );
       }
     } catch (e) {
@@ -626,24 +629,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    const Color(0xFF0033FF),
-                    const Color(0xFFFFD700),
-                  ],
-                ),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.favorite,
-                size: 64,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 24),
             const Text(
               'Support Our Ministry',
               style: TextStyle(
@@ -701,24 +686,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFF0033FF),
-                  const Color(0xFFFFD700),
-                ],
-              ),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.church,
-              size: 64,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 24),
           const Text(
             'Salvation Prayer',
             style: TextStyle(

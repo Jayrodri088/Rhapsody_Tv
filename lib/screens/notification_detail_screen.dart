@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rhapsody_tv/models/notification_model.dart';
+import 'package:rhapsody_tv/screens/video_player_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class NotificationDetailScreen extends StatelessWidget {
@@ -170,6 +171,57 @@ class NotificationDetailScreen extends StatelessWidget {
                       ),
                     ),
                   ],
+                ),
+              ),
+            ],
+            if (notification.hasChannel) ...[
+              const SizedBox(height: 2),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                ),
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => VideoPlayerScreen(
+                          channelName: notification.channelName!,
+                          streamUrl: notification.channelUrl!,
+                        ),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0033FF),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 24),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 2,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.play_circle_filled, size: 28),
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: Text(
+                          notification.channelButtonText?.isNotEmpty == true
+                              ? notification.channelButtonText!
+                              : 'Watch ${notification.channelName}',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

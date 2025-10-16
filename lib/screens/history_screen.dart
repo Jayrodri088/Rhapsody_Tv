@@ -99,6 +99,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          if (_history.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.white),
+              onPressed: _showClearHistoryDialog,
+              tooltip: 'Clear History',
+            ),
+        ],
       ),
       body: _buildContent(),
     );
@@ -270,39 +278,54 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   child: Container(
                     width: 100,
                     height: 75,
-                    color: const Color(0xFF0033FF).withOpacity(0.1),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFF0033FF).withOpacity(0.2),
+                        width: 1,
+                      ),
+                    ),
                     child: thumbnailUrl != null && thumbnailUrl.isNotEmpty
-                        ? Image.network(
-                            thumbnailUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(
-                                contentType == 'channel'
-                                    ? Icons.live_tv
-                                    : Icons.play_circle_outline,
-                                color: const Color(0xFF0033FF),
-                                size: 32,
-                              );
-                            },
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Center(
-                                child: CircularProgressIndicator(
-                                  value: loadingProgress.expectedTotalBytes != null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                      : null,
-                                  color: const Color(0xFF0033FF),
-                                ),
-                              );
-                            },
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(
+                              thumbnailUrl,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Center(
+                                  child: Icon(
+                                    contentType == 'channel'
+                                        ? Icons.live_tv
+                                        : Icons.play_circle_outline,
+                                    color: const Color(0xFF0033FF),
+                                    size: 32,
+                                  ),
+                                );
+                              },
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Center(
+                                  child: CircularProgressIndicator(
+                                    value: loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress.cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                                    color: const Color(0xFF0033FF),
+                                    strokeWidth: 2,
+                                  ),
+                                );
+                              },
+                            ),
                           )
-                        : Icon(
-                            contentType == 'channel'
-                                ? Icons.live_tv
-                                : Icons.play_circle_outline,
-                            color: const Color(0xFF0033FF),
-                            size: 32,
+                        : Center(
+                            child: Icon(
+                              contentType == 'channel'
+                                  ? Icons.live_tv
+                                  : Icons.play_circle_outline,
+                              color: const Color(0xFF0033FF),
+                              size: 32,
+                            ),
                           ),
                   ),
                 ),
@@ -369,6 +392,168 @@ class _HistoryScreenState extends State<HistoryScreen> {
     } catch (e) {
       debugPrint('Error parsing date: $dateStr - Error: $e');
       return dateStr;
+    }
+  }
+
+  Future<void> _showClearHistoryDialog() async {
+    final shouldClear = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.delete_forever,
+                color: Colors.red,
+                size: 32,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                'Clear History?',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          'This will permanently delete all your watch history. This action cannot be undone.',
+          style: TextStyle(fontSize: 16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 16,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              'Clear All',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldClear == true) {
+      await _clearHistory();
+    }
+  }
+
+  Future<void> _clearHistory() async {
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final user = authProvider.user;
+
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please login to clear history'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Show loading indicator
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(width: 16),
+                Text('Clearing history...'),
+              ],
+            ),
+            duration: Duration(hours: 1),
+          ),
+        );
+      }
+
+      final response = await ApiService.clearViewingHistory(
+        token: user.token,
+      );
+
+      // Hide loading indicator
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      }
+
+      if (response['success'] == true) {
+        setState(() {
+          _history = [];
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Cleared ${response['data']['deleted_count'] ?? 0} items from history',
+              ),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response['message'] ?? 'Failed to clear history'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 }

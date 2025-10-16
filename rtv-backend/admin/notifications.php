@@ -66,6 +66,10 @@ if ($notifications === null) {
 }
 $allNotifications = $notifications['notifications'] ?? [];
 
+// Load channels for dropdown
+$channels = readJSON(CHANNELS_DB);
+$allChannels = $channels['channels'] ?? [];
+
 $editingNotification = null;
 if (isset($_GET['edit'])) {
     $editNotifId = $_GET['edit'];

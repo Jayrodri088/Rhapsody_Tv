@@ -260,11 +260,33 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> clearViewingHistory({
+    required String token,
+  }) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/history/clear.php'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      return json.decode(response.body);
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
   static Future<Map<String, dynamic>> addToViewingHistory({
     required String token,
     required String contentId,
     required String contentType,
     String? contentTitle,
+    String? thumbnailUrl,
     int? duration,
     int? watchTime,
   }) async {
@@ -279,6 +301,7 @@ class ApiService {
           'content_id': contentId,
           'content_type': contentType,
           'content_title': contentTitle,
+          'thumbnail_url': thumbnailUrl,
           'duration': duration,
           'watch_time': watchTime,
         }),

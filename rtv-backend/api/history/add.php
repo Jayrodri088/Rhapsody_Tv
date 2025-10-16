@@ -22,6 +22,7 @@ if (!isset($input['content_id']) || !isset($input['content_type'])) {
 $contentId = sanitizeInput($input['content_id']);
 $contentType = sanitizeInput($input['content_type']); // 'video', 'channel', 'category'
 $contentTitle = sanitizeInput($input['content_title'] ?? '');
+$thumbnailUrl = sanitizeInput($input['thumbnail_url'] ?? '');
 $duration = isset($input['duration']) ? (int)$input['duration'] : 0;
 $watchTime = isset($input['watch_time']) ? (int)$input['watch_time'] : 0;
 
@@ -47,6 +48,7 @@ $historyItem = [
     'content_id' => $contentId,
     'content_type' => $contentType,
     'content_title' => $contentTitle,
+    'thumbnail_url' => $thumbnailUrl,
     'duration' => $duration,
     'watch_time' => $watchTime,
     'progress_percentage' => $duration > 0 ? round(($watchTime / $duration) * 100, 2) : 0,

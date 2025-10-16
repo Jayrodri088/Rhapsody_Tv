@@ -6,15 +6,16 @@ import 'providers/channel_provider.dart';
 import 'providers/category_provider.dart';
 import 'providers/notification_provider.dart';
 import 'services/notification_service.dart';
+import 'services/notification_polling_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize notification service
+  // Initialize notification service (for foreground notifications only)
   await NotificationService().initialize();
 
-  // Request notification permissions
-  await NotificationService().requestPermissions();
+  // Start polling for new notifications from backend (works when app is open)
+  await NotificationPollingService().startPolling();
 
   // Add error handling
   FlutterError.onError = (FlutterErrorDetails details) {

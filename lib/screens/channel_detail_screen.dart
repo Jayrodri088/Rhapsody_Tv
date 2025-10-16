@@ -165,6 +165,7 @@ class ChannelDetailScreen extends StatelessWidget {
                                 builder: (context) => VideoPlayerScreen(
                                   channelName: channel.name,
                                   streamUrl: channel.streamUrl,
+                                  thumbnailUrl: channel.thumbnail,
                                 ),
                               ),
                             );
