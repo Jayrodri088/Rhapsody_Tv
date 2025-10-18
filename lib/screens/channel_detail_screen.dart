@@ -163,6 +163,7 @@ class ChannelDetailScreen extends StatelessWidget {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => VideoPlayerScreen(
+                                  channelId: channel.id,
                                   channelName: channel.name,
                                   streamUrl: channel.streamUrl,
                                   thumbnailUrl: channel.thumbnail,

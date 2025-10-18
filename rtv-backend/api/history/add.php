@@ -32,13 +32,16 @@ if ($database === null) {
     $database = ['history' => []];
 }
 
-// Check if this content is already in history (update if exists)
-$historyIndex = -1;
+// Check if this exact viewing session already exists (within last 5 minutes)
+// This prevents duplicate entries when the app tracks every 30 seconds
+$recentHistoryIndex = -1;
+$fiveMinutesAgo = strtotime('-5 minutes');
 foreach ($database['history'] as $index => $item) {
     if ($item['user_id'] === $user['id'] &&
         $item['content_id'] === $contentId &&
-        $item['content_type'] === $contentType) {
-        $historyIndex = $index;
+        $item['content_type'] === $contentType &&
+        strtotime($item['last_watched']) > $fiveMinutesAgo) {
+        $recentHistoryIndex = $index;
         break;
     }
 }
@@ -56,14 +59,14 @@ $historyItem = [
     'updated_at' => date('Y-m-d H:i:s')
 ];
 
-if ($historyIndex >= 0) {
-    // Update existing history item
-    $historyItem['id'] = $database['history'][$historyIndex]['id'];
-    $historyItem['created_at'] = $database['history'][$historyIndex]['created_at'];
-    $historyItem['watch_count'] = ($database['history'][$historyIndex]['watch_count'] ?? 1) + 1;
-    $database['history'][$historyIndex] = $historyItem;
+if ($recentHistoryIndex >= 0) {
+    // Update the recent viewing session (same session within 5 minutes)
+    $historyItem['id'] = $database['history'][$recentHistoryIndex]['id'];
+    $historyItem['created_at'] = $database['history'][$recentHistoryIndex]['created_at'];
+    $historyItem['watch_count'] = ($database['history'][$recentHistoryIndex]['watch_count'] ?? 0) + 1;
+    $database['history'][$recentHistoryIndex] = $historyItem;
 } else {
-    // Create new history item
+    // Create new history entry for new viewing session
     $historyItem['id'] = 'history_' . uniqid('', true);
     $historyItem['created_at'] = date('Y-m-d H:i:s');
     $historyItem['watch_count'] = 1;

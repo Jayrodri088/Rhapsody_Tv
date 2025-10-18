@@ -7,12 +7,14 @@ import '../services/api_service.dart';
 import 'dart:async';
 
 class VideoPlayerScreen extends StatefulWidget {
+  final String channelId;
   final String channelName;
   final String streamUrl;
   final String? thumbnailUrl;
 
   const VideoPlayerScreen({
     super.key,
+    required this.channelId,
     required this.channelName,
     required this.streamUrl,
     this.thumbnailUrl,
@@ -113,7 +115,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     });
 
     try {
-      final response = await ApiService.getComments();
+      final response = await ApiService.getComments(channelId: widget.channelId);
       if (response['success'] == true && response['data'] != null) {
         setState(() {
           _comments = response['data']['comments'] ?? [];
@@ -164,6 +166,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       final response = await ApiService.addComment(
         userId: user.id,
         username: user.name ?? user.email.split('@')[0],
+        channelId: widget.channelId,
         comment: _commentController.text.trim(),
       );
 

@@ -330,6 +330,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with SingleTickerProvid
             context,
             MaterialPageRoute(
               builder: (context) => const VideoPlayerScreen(
+                channelId: 'channel_rhapsody_hd',
                 channelName: 'RhapsodyTV',
                 streamUrl: 'https://2nbyjxnbl53k-hls-live.5centscdn.com/RTV/59a49be6dc0f146c57cd9ee54da323b1.sdp/playlist.m3u8',
               ),

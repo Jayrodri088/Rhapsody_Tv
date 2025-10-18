@@ -7,11 +7,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $input = json_decode(file_get_contents('php://input'), true);
 
-if (!isset($input['user_id']) || !isset($input['comment'])) {
-    sendResponse(false, 'User ID and comment are required', null, 400);
+if (!isset($input['user_id']) || !isset($input['comment']) || !isset($input['channel_id'])) {
+    sendResponse(false, 'User ID, channel ID, and comment are required', null, 400);
 }
 
 $userId = sanitizeInput($input['user_id']);
+$channelId = sanitizeInput($input['channel_id']);
 $comment = sanitizeInput($input['comment']);
 $username = sanitizeInput($input['username'] ?? 'Anonymous');
 
@@ -28,6 +29,7 @@ $newComment = [
     'id' => uniqid('comment_', true),
     'user_id' => $userId,
     'username' => $username,
+    'channel_id' => $channelId,
     'comment' => $comment,
     'created_at' => date('Y-m-d H:i:s'),
     'timestamp' => time()

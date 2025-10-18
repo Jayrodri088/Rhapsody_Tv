@@ -7,11 +7,11 @@ class ApiService {
   // - Android Emulator: use 'http://10.0.2.2/rtv/rtv-backend/api'
   // - Physical Device (iOS/Android): use 'http://192.168.1.189/rtv/rtv-backend/api'
 
-  // Current setting for REAL DEVICE testing:
+  // Current setting for Production:
   static const String baseUrl = 'https://movortech.com/rtv-backend/api';
 
-  // Switch back to localhost for simulator testing:
-  // static const String baseUrl = 'http://localhost/rtv/rtv-backend/api';
+  // Android Emulator URL:
+  // static const String baseUrl = 'http://10.0.2.2/rtv/rtv-backend/api';
 
   // Auth endpoints
   static Future<Map<String, dynamic>> register({
@@ -68,6 +68,7 @@ class ApiService {
   static Future<Map<String, dynamic>> addComment({
     required String userId,
     required String username,
+    required String channelId,
     required String comment,
   }) async {
     try {
@@ -77,6 +78,7 @@ class ApiService {
         body: json.encode({
           'user_id': userId,
           'username': username,
+          'channel_id': channelId,
           'comment': comment,
         }),
       );
@@ -90,10 +92,10 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> getComments() async {
+  static Future<Map<String, dynamic>> getComments({required String channelId}) async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/comments/get.php'),
+        Uri.parse('$baseUrl/comments/get.php?channel_id=$channelId'),
         headers: {'Content-Type': 'application/json'},
       );
 

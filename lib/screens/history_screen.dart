@@ -247,6 +247,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             context,
             MaterialPageRoute(
               builder: (context) => VideoPlayerScreen(
+                channelId: item['content_id'] ?? '',
                 streamUrl: item['content_id'] ?? '',
                 channelName: contentTitle,
               ),

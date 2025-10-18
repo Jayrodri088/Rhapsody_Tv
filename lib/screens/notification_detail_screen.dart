@@ -188,6 +188,7 @@ class NotificationDetailScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => VideoPlayerScreen(
+                          channelId: notification.channelName!,
                           channelName: notification.channelName!,
                           streamUrl: notification.channelUrl!,
                         ),
