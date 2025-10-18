@@ -32,15 +32,16 @@ if ($database === null) {
     $database = ['history' => []];
 }
 
-// Check if this exact viewing session already exists (within last 5 minutes)
+// Check if this is a continuation of the current viewing session (within last 60 seconds)
 // This prevents duplicate entries when the app tracks every 30 seconds
+// After 60 seconds of no tracking, it's considered a new viewing session
 $recentHistoryIndex = -1;
-$fiveMinutesAgo = strtotime('-5 minutes');
+$sixtySecondsAgo = strtotime('-60 seconds');
 foreach ($database['history'] as $index => $item) {
     if ($item['user_id'] === $user['id'] &&
         $item['content_id'] === $contentId &&
         $item['content_type'] === $contentType &&
-        strtotime($item['last_watched']) > $fiveMinutesAgo) {
+        strtotime($item['last_watched']) > $sixtySecondsAgo) {
         $recentHistoryIndex = $index;
         break;
     }
@@ -60,13 +61,17 @@ $historyItem = [
 ];
 
 if ($recentHistoryIndex >= 0) {
-    // Update the recent viewing session (same session within 5 minutes)
+    // Update the current ongoing viewing session (within 60 seconds)
+    // This groups the 30-second tracking updates into one session
     $historyItem['id'] = $database['history'][$recentHistoryIndex]['id'];
     $historyItem['created_at'] = $database['history'][$recentHistoryIndex]['created_at'];
     $historyItem['watch_count'] = ($database['history'][$recentHistoryIndex]['watch_count'] ?? 0) + 1;
     $database['history'][$recentHistoryIndex] = $historyItem;
 } else {
-    // Create new history entry for new viewing session
+    // Create NEW history entry - this happens when:
+    // 1. First time watching this content
+    // 2. Watching again after closing the player (60+ seconds gap)
+    // 3. Switching to this channel from another
     $historyItem['id'] = 'history_' . uniqid('', true);
     $historyItem['created_at'] = date('Y-m-d H:i:s');
     $historyItem['watch_count'] = 1;
